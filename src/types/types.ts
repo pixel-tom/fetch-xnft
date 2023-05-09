@@ -1,0 +1,47 @@
+export type LendingData = {
+  transactionId: string;
+  market: string;
+  offerBlocktime: number | null;
+  cancelBlocktime: number | null;
+  acceptBlocktime: number | null;
+  repayBlocktime: number | null;
+  extendBlocktime: number | null;
+  liquidateBlocktime: number | null;
+  loadId: string;
+  newLoanId: string;
+  status: string;
+  lender: string;
+  borrower: string;
+  collateralMint: string;
+  loanDurationSeconds: number;
+  principalAmount: number;
+  repayAmount: number | null;
+  helloMoonCollectionId: string;
+  protocolCollectionId: string;
+  amountToRepay: number;
+  apy: number | null;
+};
+
+export type BorrowingData = {
+  transactionId: string;
+  market: string;
+  offerBlocktime: number | null;
+  cancelBlocktime: number | null;
+  acceptBlocktime: number | null;
+  repayBlocktime: number | null;
+  extendBlocktime: number | null;
+  liquidateBlocktime: number | null;
+  loadId: string;
+  newLoanId: string;
+  status: string;
+  lender: string;
+  borrower: string;
+  collateralMint: string;
+  loanDurationSeconds: number;
+  principalAmount: number;
+  repayAmount: number | null;
+  helloMoonCollectionId: string;
+  protocolCollectionId: string;
+  amountToRepay: number;
+  apy: number | null;
+};

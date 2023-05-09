@@ -16,6 +16,6 @@ const darkTheme = {
 };
 
 const lightTheme = {
-  backgroundColor: "white",
-  fontColor: "black",
+  backgroundColor: "black",
+  fontColor: "white",
 };

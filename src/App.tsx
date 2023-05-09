@@ -4,11 +4,10 @@ import { ActivityIndicator, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useFonts, Inter_900Black } from "@expo-google-fonts/dev";
-
-import { ExamplesScreens } from "./screens/ExamplesScreen";
-import { HomeScreen } from "./screens/HomeScreen";
+import { useFonts, PressStart2P_400Regular } from "@expo-google-fonts/dev";
+import { LendingScreen } from "./screens/LendingScreen";
 import { TokenListNavigator } from "./screens/TokenNavigator";
+import { BorrowingScreen } from "./screens/BorrowingScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -18,13 +17,25 @@ function TabNavigator() {
       initialRouteName="Home"
       screenOptions={{
         tabBarActiveTintColor: "#e91e63",
+        tabBarInactiveBackgroundColor: "black",
+        tabBarActiveBackgroundColor: "black",
       }}
     >
       <Tab.Screen
-        name="Home"
-        component={HomeScreen}
+        name="Lending"
+        component={LendingScreen}
         options={{
-          tabBarLabel: "Home",
+          tabBarLabel: "Lending",
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="account" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Borrowing"
+        component={BorrowingScreen}
+        options={{
+          tabBarLabel: "Borrowing",
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="account" color={color} size={size} />
           ),
@@ -35,19 +46,9 @@ function TabNavigator() {
         component={TokenListNavigator}
         options={{
           headerShown: false,
-          tabBarLabel: "Tokens",
+          tabBarLabel: "My Stats",
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="bank" color={color} size={size} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Examples"
-        component={ExamplesScreens}
-        options={{
-          tabBarLabel: "Examples",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="home" color={color} size={size} />
           ),
         }}
       />
@@ -57,7 +58,7 @@ function TabNavigator() {
 
 function App() {
   let [fontsLoaded] = useFonts({
-    Inter_900Black,
+    PressStart2P_400Regular,
   });
 
   if (!fontsLoaded) {
