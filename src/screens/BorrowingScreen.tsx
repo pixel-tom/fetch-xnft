@@ -1,4 +1,11 @@
-import { Text, View, FlatList, StyleSheet, Dimensions } from "react-native";
+import {
+  Text,
+  View,
+  FlatList,
+  StyleSheet,
+  Dimensions,
+  TouchableOpacity,
+} from "react-native";
 import tw from "twrnc";
 import { useState, useEffect } from "react";
 import fetchBorrowingAccounts from "../utils/fetchBorrowingAccounts";
@@ -9,10 +16,11 @@ import { usePublicKeys } from "../hooks/xnft-hooks";
 
 export function BorrowingScreen() {
   const publicKey = usePublicKeys();
-  const address = "9s96jF3D2uXaCjmphDXDmwXna2rxGDS3Wi8vARaQbErS";
+  const address = "HLFM7GmwN4NXvK2SuhmLFiADHq8UdK6i4uNxgkRD5aT5";
   const [openBorrowingData, setOpenBorrowingData] = useState<BorrowingData[]>(
     []
   );
+  const [displayedItems, setDisplayedItems] = useState<BorrowingData[]>([]);
 
   const styles = StyleSheet.create({
     cardContainer: {
@@ -30,15 +38,38 @@ export function BorrowingScreen() {
     const fetchBorrowingData = async () => {
       const data = await fetchBorrowingAccounts(address);
       setOpenBorrowingData(data);
+      setDisplayedItems(data.slice(0, 10));
     };
     fetchBorrowingData();
   }, []);
+
+  const showMoreItems = () => {
+    const currentLength = displayedItems.length;
+    const newItems = openBorrowingData.slice(currentLength, currentLength + 10);
+    setDisplayedItems([...displayedItems, ...newItems]);
+  };
 
   const renderOpenBorrowingItem = ({ item }: { item: BorrowingData }) => {
     const loanDurationDays = Math.round(item.loanDurationSeconds / 86400);
     const principalAmountSol = item.principalAmount / 10 ** 9; // convert to Sol
     const amountToRepaySol = item.amountToRepay / 10 ** 9; // convert to Sol
-    const revenueSol = (amountToRepaySol - principalAmountSol).toFixed(3); // calculate revenue and round to 3 decimal places
+    const now = Date.now() / 1000; // get the current time in seconds
+    const endTime = (item.acceptBlocktime || now) + item.loanDurationSeconds; // calculate the end time in seconds
+    const timeRemaining = endTime - now; // calculate the remaining time in seconds
+    const daysRemaining = Math.floor(timeRemaining / 86400); // convert seconds to days
+    const hoursRemaining = Math.floor((timeRemaining % 86400) / 3600); // convert the remaining seconds to hours
+    const minutesRemaining = Math.floor((timeRemaining % 3600) / 60); // convert the remaining seconds to minutes
+
+    let apy = item.apy;
+    let interestDueSol = (amountToRepaySol - principalAmountSol).toFixed(3); // calculate interest and round to 3 decimal places
+
+    if (item.market === "Frakt" && apy === null) {
+      const interest = amountToRepaySol - principalAmountSol;
+      apy =
+        ((1 + interest / principalAmountSol) ** (365 / loanDurationDays) - 1) *
+        100;
+      interestDueSol = "0.00";
+    }
 
     return (
       <View
@@ -63,7 +94,9 @@ export function BorrowingScreen() {
         </View>
         <View style={tw`mb-2 ml-2`}>
           <Text style={tw`text-xs font-bold text-white`}>APY</Text>
-          <Text style={tw`text-xs text-gray-300`}>{item.apy} %</Text>
+          <Text style={tw`text-xs text-gray-300`}>
+            {apy ? apy.toFixed(2) : "N/A"} %
+          </Text>
         </View>
         <View style={tw`mb-2 ml-2`}>
           <Text style={tw`text-xs font-bold text-white`}>Duration</Text>
@@ -71,8 +104,16 @@ export function BorrowingScreen() {
         </View>
         <View style={tw`mb-2 ml-2`}>
           <Text style={tw`text-xs font-bold text-white`}>Interest Due</Text>
-          <Text style={tw`text-xs text-red-400`}>- {revenueSol} SOL</Text>
+          <Text style={tw`text-xs text-red-400`}>- {interestDueSol} SOL</Text>
         </View>
+        <View style={tw`mb-2 ml-2`}>
+          <Text style={tw`text-xs font-bold text-white`}>Ends</Text>
+          <Text style={tw`text-sm text-gray-400`}>
+            {daysRemaining} Days {hoursRemaining} Hours {minutesRemaining}{" "}
+            Minutes
+          </Text>
+        </View>
+
         {item.market === "Sharky" ? (
           <View style={tw`absolute top-0 right-0 p-1`}>
             <Image
@@ -109,15 +150,22 @@ export function BorrowingScreen() {
 
   return (
     <Screen style={tw`bg-black`}>
-      {openBorrowingData.length > 0 ? (
+      {displayedItems.length > 0 ? (
         <>
-          <Text style={tw`mb-2 font-bold text-white`}>Open Loans:</Text>
           <FlatList
-            data={openBorrowingData}
+            data={displayedItems}
             keyExtractor={(item) => item.transactionId}
             numColumns={2} // specify the number of columns
             renderItem={renderOpenBorrowingItem}
           />
+          {displayedItems.length < openBorrowingData.length && (
+            <TouchableOpacity
+              onPress={showMoreItems}
+              style={tw`mt-4 mb-8 bg-blue-500 px-6 py-2 rounded-full`}
+            >
+              <Text style={tw`text-white font-bold text-sm`}>Show more</Text>
+            </TouchableOpacity>
+          )}
         </>
       ) : (
         <Text>No open lending account data found.</Text>

@@ -4,7 +4,7 @@ export type LendingData = {
   offerBlocktime: number | null;
   cancelBlocktime: number | null;
   acceptBlocktime: number | null;
-  repayBlocktime: number | null;
+  repayBlocktime: number;
   extendBlocktime: number | null;
   liquidateBlocktime: number | null;
   loadId: string;

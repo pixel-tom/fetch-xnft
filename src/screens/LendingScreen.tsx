@@ -1,4 +1,4 @@
-import { Text, View, FlatList, StyleSheet, Dimensions } from "react-native";
+import { Text, View, FlatList, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
 import tw from "twrnc";
 import { useState, useEffect } from "react";
 import fetchLendingAccounts from "../utils/fetchLendingAccounts";
@@ -11,6 +11,7 @@ import { Image } from "react-native";
 export function LendingScreen() {
   const address = "AYSTZJKba5bFXkdoKAUJbpnU38cSz8PT5AVifJL8ACWP";
   const [openLendingData, setOpenLendingData] = useState<LendingData[]>([]);
+  const [displayedItems, setDisplayedItems] = useState<LendingData[]>([]);
 
   const styles = StyleSheet.create({
     cardContainer: {
@@ -28,15 +29,39 @@ export function LendingScreen() {
     const fetchData = async () => {
       const data = await fetchLendingAccounts(address);
       setOpenLendingData(data);
+      setDisplayedItems(data.slice(0, 10));
     };
     fetchData();
   }, []);
+
+  const showMoreItems = () => {
+    const currentLength = displayedItems.length;
+    const newItems = openLendingData.slice(currentLength, currentLength + 10);
+    setDisplayedItems([...displayedItems, ...newItems]);
+  };
 
   const renderOpenItem = ({ item }: { item: LendingData }) => {
     const loanDurationDays = Math.round(item.loanDurationSeconds / 86400);
     const principalAmountSol = item.principalAmount / 10 ** 9; // convert to Sol
     const amountToRepaySol = item.amountToRepay / 10 ** 9; // convert to Sol
     const revenueSol = (amountToRepaySol - principalAmountSol).toFixed(3); // calculate revenue and round to 3 decimal places
+    const now = Date.now() / 1000; // get the current time in seconds
+    const endTime = (item.acceptBlocktime || now) + item.loanDurationSeconds; // calculate the end time in seconds
+    const timeRemaining = endTime - now; // calculate the remaining time in seconds
+    const daysRemaining = Math.floor(timeRemaining / 86400); // convert seconds to days
+    const hoursRemaining = Math.floor((timeRemaining % 86400) / 3600); // convert the remaining seconds to hours
+    const minutesRemaining = Math.floor((timeRemaining % 3600) / 60); // convert the remaining seconds to minutes
+
+    let apy = item.apy;
+    let interestDueSol = (amountToRepaySol - principalAmountSol).toFixed(3); // calculate interest and round to 3 decimal places
+
+    if (item.market === "Frakt" && apy === null) {
+      const interest = amountToRepaySol - principalAmountSol;
+      apy =
+        ((1 + interest / principalAmountSol) ** (365 / loanDurationDays) - 1) *
+        100;
+      interestDueSol = "0.00";
+    }
 
     return (
       <View
@@ -61,7 +86,9 @@ export function LendingScreen() {
         </View>
         <View style={tw`mb-2 ml-2`}>
           <Text style={tw`text-xs font-bold text-white`}>APY</Text>
-          <Text style={tw`text-xs text-gray-300`}>{item.apy} %</Text>
+          <Text style={tw`text-xs text-gray-300`}>
+            {apy ? apy.toFixed(2) : "N/A"} %
+          </Text>
         </View>
         <View style={tw`mb-2 ml-2`}>
           <Text style={tw`text-xs font-bold text-white`}>Duration</Text>
@@ -69,13 +96,39 @@ export function LendingScreen() {
         </View>
         <View style={tw`mb-2 ml-2`}>
           <Text style={tw`text-xs font-bold text-white`}>Interest Due</Text>
-          <Text style={tw`text-xs text-green-400`}>+ {revenueSol} SOL</Text>
+          <Text style={tw`text-xs text-red-400`}>- {interestDueSol} SOL</Text>
         </View>
+        <View style={tw`mb-2 ml-2`}>
+          <Text style={tw`text-xs font-bold text-white`}>Ends</Text>
+          <Text style={tw`text-sm text-gray-400`}>
+            {daysRemaining} Days {hoursRemaining} Hours {minutesRemaining}{" "}
+            Minutes
+          </Text>
+        </View>
+
         {item.market === "Sharky" ? (
           <View style={tw`absolute top-0 right-0 p-1`}>
             <Image
               source={{ uri: "https://sharky.fi/sharky.svg" }}
               style={{ width: 24, height: 24 }}
+            />
+          </View>
+        ) : item.market === "Frakt" ? (
+          <View style={tw`absolute top-0 right-0 p-1`}>
+            <Image
+              source={{
+                uri: "https://www.gitbook.com/cdn-cgi/image/width=256,dpr=2,height=30,fit=contain,format=auto/https%3A%2F%2F500644324-files.gitbook.io%2F~%2Ffiles%2Fv0%2Fb%2Fgitbook-x-prod.appspot.com%2Fo%2Fspaces%252FiQhC2ch1UxeZmjicY4AZ%252Flogo%252F0dg1bYxmPe2B09BYbWGz%252FlogoForDocs.png%3Falt%3Dmedia%26token%3Dd8974505-127d-4b4e-a15e-06ce372a2618",
+              }}
+              style={{ width: 48, height: 24 }}
+            />
+          </View>
+        ) : item.market === "Citrus" ? (
+          <View style={tw`absolute top-0 right-0 p-1`}>
+            <Image
+              source={{
+                uri: "https://citrus.famousfoxes.com/img/citrus-logo.png",
+              }}
+              style={{ width: 50, height: 22 }}
             />
           </View>
         ) : (
@@ -89,15 +142,22 @@ export function LendingScreen() {
 
   return (
     <Screen style={tw`bg-black`}>
-      {openLendingData.length > 0 ? (
+      {displayedItems.length > 0 ? (
         <>
-          <Text style={tw`mb-2 font-bold text-white`}>Open Loans:</Text>
           <FlatList
-            data={openLendingData}
+            data={displayedItems}
             keyExtractor={(item) => item.transactionId}
             numColumns={2} // specify the number of columns
             renderItem={renderOpenItem}
           />
+          {displayedItems.length < openLendingData.length && (
+            <TouchableOpacity
+              onPress={showMoreItems}
+              style={tw`mt-4 mb-8 bg-blue-500 px-6 py-2 rounded-full`}
+            >
+              <Text style={tw`text-white font-bold text-sm`}>Show more</Text>
+            </TouchableOpacity>
+          )}
         </>
       ) : (
         <Text>No open lending account data found.</Text>
