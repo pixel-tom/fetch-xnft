@@ -1,15 +1,22 @@
-import { Text, View, FlatList, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
+import {
+  Text,
+  View,
+  FlatList,
+  StyleSheet,
+  Dimensions,
+  TouchableOpacity,
+} from "react-native";
 import tw from "twrnc";
 import { useState, useEffect } from "react";
 import fetchLendingAccounts from "../utils/fetchLendingAccounts";
-
 import { Screen } from "../components/Screen";
 import { LendingData } from "../types/types";
-
 import { Image } from "react-native";
+import { usePublicKeys } from "../hooks/xnft-hooks";
 
 export function LendingScreen() {
-  const address = "AYSTZJKba5bFXkdoKAUJbpnU38cSz8PT5AVifJL8ACWP";
+  const publicKey = usePublicKeys();
+  const address = publicKey ? JSON.stringify(publicKey) : '';
   const [openLendingData, setOpenLendingData] = useState<LendingData[]>([]);
   const [displayedItems, setDisplayedItems] = useState<LendingData[]>([]);
 
@@ -22,6 +29,7 @@ export function LendingScreen() {
       borderRadius: 4,
       borderColor: "#222222",
       backgroundColor: "#0F0F0F",
+      fontSize: 2,
     },
   });
 
@@ -47,10 +55,6 @@ export function LendingScreen() {
     const revenueSol = (amountToRepaySol - principalAmountSol).toFixed(3); // calculate revenue and round to 3 decimal places
     const now = Date.now() / 1000; // get the current time in seconds
     const endTime = (item.acceptBlocktime || now) + item.loanDurationSeconds; // calculate the end time in seconds
-    const timeRemaining = endTime - now; // calculate the remaining time in seconds
-    const daysRemaining = Math.floor(timeRemaining / 86400); // convert seconds to days
-    const hoursRemaining = Math.floor((timeRemaining % 86400) / 3600); // convert the remaining seconds to hours
-    const minutesRemaining = Math.floor((timeRemaining % 3600) / 60); // convert the remaining seconds to minutes
 
     let apy = item.apy;
     let interestDueSol = (amountToRepaySol - principalAmountSol).toFixed(3); // calculate interest and round to 3 decimal places
@@ -63,46 +67,71 @@ export function LendingScreen() {
       interestDueSol = "0.00";
     }
 
+    const getTimeRemaining = () => {
+      const totalSeconds = Math.max(endTime - now, 0);
+      const daysRemaining = Math.floor(totalSeconds / 86400);
+      const hoursRemaining = Math.floor((totalSeconds % 86400) / 3600);
+      const minutesRemaining = Math.floor((totalSeconds % 3600) / 60);
+      return { daysRemaining, hoursRemaining, minutesRemaining };
+    };
+
+    const { daysRemaining, hoursRemaining, minutesRemaining } =
+      getTimeRemaining();
+
     return (
       <View
         style={[
-          tw`mb-2 p-0 w-full bg-gray-800 border border-gray-700 rounded-lg`,
+          tw`mb-3 p-0 w-full bg-gray-800 border border-gray-700 rounded-lg`,
           styles.cardContainer,
         ]}
       >
-        <View style={tw`w-full mb-2`}>
+        <View style={tw`w-full relative`}>
           <Image
             source={{
               uri: `https://cdn.hellomoon.io/nft/${item.collateralMint}?apiKey=151c15b0-d21d-40b2-9786-49678176b715&format=webp&width=500&height=500`,
             }}
             style={{ width: "100%", aspectRatio: 1, borderRadius: 4 }}
           />
+          <View style={tw`absolute top-0 left-0 p-2`}>
+            <View style={tw`bg-black bg-opacity-50 p-1 rounded`}>
+              <Text style={tw`text-[10px] font-bold text-white`}>Loan</Text>
+              <View style={tw`flex-row items-center`}>
+                <Text style={tw`text-[10px] font-bold text-white`}>
+                  {principalAmountSol.toFixed(2) + " "}
+                </Text>
+                <Image
+                  source={require("/assets/sol.png")}
+                  style={{ width: 9, height: 7 }}
+                />
+              </View>
+            </View>
+          </View>
+          <View style={tw`absolute bottom-0 right-0 p-2`}>
+            <View style={tw`bg-black bg-opacity-50 p-1 rounded`}>
+              <Text style={tw`text-[10px] font-bold text-white`}>APY</Text>
+              <Text style={tw`text-[11px] text-gray-300`}>
+                {apy ? apy.toFixed(0) + " %" : "PERP"}
+              </Text>
+            </View>
+          </View>
+          <View style={tw`absolute bottom-0 left-0 p-2`}>
+            <View style={tw`bg-black bg-opacity-50 p-1 rounded`}>
+              <Text style={tw`text-[10px] font-bold text-white`}>Term</Text>
+              <Text style={tw`text-[11px] text-gray-300`}>
+                {loanDurationDays} Days
+              </Text>
+            </View>
+          </View>
         </View>
-        <View style={tw`mb-2 ml-2`}>
-          <Text style={tw`text-xs font-bold text-white`}>Loan Amount</Text>
-          <Text style={tw`text-xs text-gray-300`}>
-            {principalAmountSol} SOL
-          </Text>
-        </View>
-        <View style={tw`mb-2 ml-2`}>
-          <Text style={tw`text-xs font-bold text-white`}>APY</Text>
-          <Text style={tw`text-xs text-gray-300`}>
-            {apy ? apy.toFixed(2) : "N/A"} %
-          </Text>
-        </View>
-        <View style={tw`mb-2 ml-2`}>
-          <Text style={tw`text-xs font-bold text-white`}>Duration</Text>
-          <Text style={tw`text-xs text-gray-300`}>{loanDurationDays} Days</Text>
-        </View>
-        <View style={tw`mb-2 ml-2`}>
+
+        <View style={tw`px-2 pb-1 pt-2 w-full`}>
           <Text style={tw`text-xs font-bold text-white`}>Interest Due</Text>
-          <Text style={tw`text-xs text-red-400`}>- {interestDueSol} SOL</Text>
+          <Text style={tw`text-xs text-green-400`}>+ {interestDueSol} SOL</Text>
         </View>
-        <View style={tw`mb-2 ml-2`}>
-          <Text style={tw`text-xs font-bold text-white`}>Ends</Text>
-          <Text style={tw`text-sm text-gray-400`}>
-            {daysRemaining} Days {hoursRemaining} Hours {minutesRemaining}{" "}
-            Minutes
+        <View style={tw`px-2 pt-1 pb-2 w-full`}>
+          <Text style={tw`text-xs font-bold text-white`}>Time Remaining</Text>
+          <Text style={tw`text-md font-bold text-gray-300`}>
+            {daysRemaining}D {hoursRemaining}H {minutesRemaining}M
           </Text>
         </View>
 
@@ -140,10 +169,39 @@ export function LendingScreen() {
     );
   };
 
+  const totalInterestDue = openLendingData.reduce(
+    (total, item) =>
+      total + (item.amountToRepay - item.principalAmount) / 10 ** 9,
+    0
+  );
+
   return (
     <Screen style={tw`bg-black`}>
       {displayedItems.length > 0 ? (
         <>
+          <View style={tw`mb-4`}>
+            <Text style={tw`text-lg  mt-2 mb-4 ml-2 font-bold text-gray-100`}>
+              Welcome Back, @pixeltom.
+            </Text>
+            <View style={tw`flex-row bg-[#0F0F0F] rounded-md py-2 px-4 mx-2`}>
+              <View>
+                <Text style={tw`text-sm font-bold text-gray-300`}>
+                  Total Interest
+                </Text>
+                <Text style={tw`text-2xl font-bold text-green-400 mt-1`}>
+                  + {totalInterestDue.toFixed(2)} SOL
+                </Text>
+              </View>
+              <View style={tw`ml-10`}>
+                <Text style={tw`text-sm font-bold text-gray-300`}>
+                  Active Loans
+                </Text>
+                <Text style={tw`text-2xl font-bold text-white mt-1`}>
+                  {openLendingData.length}
+                </Text>
+              </View>
+            </View>
+          </View>
           <FlatList
             data={displayedItems}
             keyExtractor={(item) => item.transactionId}
@@ -153,14 +211,18 @@ export function LendingScreen() {
           {displayedItems.length < openLendingData.length && (
             <TouchableOpacity
               onPress={showMoreItems}
-              style={tw`mt-4 mb-8 bg-blue-500 px-6 py-2 rounded-full`}
+              style={tw`mt-4 mb-8 border border-slate-400 text-center bg-none px-6 py-2 rounded-full`}
             >
               <Text style={tw`text-white font-bold text-sm`}>Show more</Text>
             </TouchableOpacity>
           )}
         </>
       ) : (
-        <Text>No open lending account data found.</Text>
+        <View style={tw`flex items-center justify-center h-20`}>
+          <Text style={tw`text-slate-500 text-sm`}>
+            No open lending account data found.
+          </Text>
+        </View>
       )}
     </Screen>
   );
