@@ -16,7 +16,7 @@ const fetchBorrowingAccounts = async (address: string) => {
     const response = await axios.request(options);
     const data = response.data.data;
     const openBorrowingData = data.filter(
-      (item: { status: string }) => item.status === "repaid"
+      (item: { status: string }) => item.status === "active"
     );
     const closedBorrowingData = data.filter(
       (item: { status: string }) =>

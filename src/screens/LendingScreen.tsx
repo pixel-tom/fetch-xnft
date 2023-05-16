@@ -12,11 +12,12 @@ import fetchLendingAccounts from "../utils/fetchLendingAccounts";
 import { Screen } from "../components/Screen";
 import { LendingData } from "../types/types";
 import { Image } from "react-native";
-import { usePublicKeys } from "../hooks/xnft-hooks";
+import { usePublicKey } from "react-xnft";
+import axios from "axios";
 
 export function LendingScreen() {
-  const publicKey = usePublicKeys();
-  const address = publicKey ? JSON.stringify(publicKey) : '';
+  const publicKey = usePublicKey();
+  const [username, setUsername] = useState("");
   const [openLendingData, setOpenLendingData] = useState<LendingData[]>([]);
   const [displayedItems, setDisplayedItems] = useState<LendingData[]>([]);
 
@@ -25,17 +26,12 @@ export function LendingScreen() {
       width: Dimensions.get("window").width / 2 - 24,
       margin: "auto",
       padding: 8,
-      borderWidth: 1,
-      borderRadius: 4,
-      borderColor: "#222222",
-      backgroundColor: "#0F0F0F",
-      fontSize: 2,
     },
   });
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await fetchLendingAccounts(address);
+      const data = await fetchLendingAccounts(publicKey.toString());
       setOpenLendingData(data);
       setDisplayedItems(data.slice(0, 10));
     };
@@ -48,11 +44,25 @@ export function LendingScreen() {
     setDisplayedItems([...displayedItems, ...newItems]);
   };
 
+  useEffect(() => {
+    const fetchUsername = async () => {
+      try {
+        const response = await axios.get(
+          `https://xnft-api-server.xnfts.dev/v1/users/fromPubkey?blockchain=solana&publicKey=${publicKey.toString()}`
+        );
+        setUsername(response.data.user.username);
+      } catch (error) {
+        console.error("Error fetching username:", error);
+      }
+    };
+
+    fetchUsername();
+  }, [publicKey]);
+
   const renderOpenItem = ({ item }: { item: LendingData }) => {
     const loanDurationDays = Math.round(item.loanDurationSeconds / 86400);
     const principalAmountSol = item.principalAmount / 10 ** 9; // convert to Sol
     const amountToRepaySol = item.amountToRepay / 10 ** 9; // convert to Sol
-    const revenueSol = (amountToRepaySol - principalAmountSol).toFixed(3); // calculate revenue and round to 3 decimal places
     const now = Date.now() / 1000; // get the current time in seconds
     const endTime = (item.acceptBlocktime || now) + item.loanDurationSeconds; // calculate the end time in seconds
 
@@ -81,7 +91,7 @@ export function LendingScreen() {
     return (
       <View
         style={[
-          tw`mb-3 p-0 w-full bg-gray-800 border border-gray-700 rounded-lg`,
+          tw`mb-3 p-0 w-full bg-[#0F0F0F] border border-[#222222] rounded-lg`,
           styles.cardContainer,
         ]}
       >
@@ -181,18 +191,24 @@ export function LendingScreen() {
         <>
           <View style={tw`mb-4`}>
             <Text style={tw`text-lg  mt-2 mb-4 ml-2 font-bold text-gray-100`}>
-              Welcome Back, @pixeltom.
+              Welcome Back, {publicKey.toString()}.
             </Text>
             <View style={tw`flex-row bg-[#0F0F0F] rounded-md py-2 px-4 mx-2`}>
               <View>
                 <Text style={tw`text-sm font-bold text-gray-300`}>
                   Total Interest
                 </Text>
-                <Text style={tw`text-2xl font-bold text-green-400 mt-1`}>
-                  + {totalInterestDue.toFixed(2)} SOL
-                </Text>
+                <View style={tw`flex-row`}>
+                  <Text style={tw`text-2xl font-bold text-green-400 mt-1`}>
+                    + {totalInterestDue.toFixed(2)}
+                  </Text>
+                  <Image
+                    source={require("/assets/sol-gradient.png")}
+                    style={tw`w-6 h-6 ml-1 mt-[10px]`}
+                  />
+                </View>
               </View>
-              <View style={tw`ml-10`}>
+              <View style={tw`ml-18`}>
                 <Text style={tw`text-sm font-bold text-gray-300`}>
                   Active Loans
                 </Text>

@@ -6,17 +6,19 @@ import {
   Dimensions,
   TouchableOpacity,
 } from "react-native";
+import { usePublicKey } from "react-xnft";
 import tw from "twrnc";
 import { useState, useEffect } from "react";
 import fetchBorrowingAccounts from "../utils/fetchBorrowingAccounts";
 import { Screen } from "../components/Screen";
 import { BorrowingData } from "../types/types";
 import { Image } from "react-native";
-import { usePublicKeys } from "../hooks/xnft-hooks";
+import axios from "axios";
 
 export function BorrowingScreen() {
-  const publicKey = usePublicKeys();
-  const address = publicKey ? JSON.stringify(publicKey) : '';
+  const publicKey = usePublicKey();
+  const [username, setUsername] = useState("");
+  //const address = "CoHF24eHFgBEcmeLxkxCT88HoTkZj8vdkzfhXVoqdbWp";
   const [openBorrowingData, setOpenBorrowingData] = useState<BorrowingData[]>(
     []
   );
@@ -30,9 +32,10 @@ export function BorrowingScreen() {
     },
   });
 
+
   useEffect(() => {
     const fetchBorrowingData = async () => {
-      const data = await fetchBorrowingAccounts(address);
+      const data = await fetchBorrowingAccounts(publicKey.toString());
       setOpenBorrowingData(data);
       setDisplayedItems(data.slice(0, 10));
     };
@@ -45,13 +48,27 @@ export function BorrowingScreen() {
     setDisplayedItems([...displayedItems, ...newItems]);
   };
 
+  useEffect(() => {
+    const fetchUsername = async () => {
+      try {
+        const response = await axios.get(
+          `https://xnft-api-server.xnfts.dev/v1/users/fromPubkey?blockchain=solana&publicKey=${publicKey.toString()}`
+        );
+        setUsername(response.data.user.username);
+      } catch (error) {
+        console.error("Error fetching username:", error);
+      }
+    };
+
+    fetchUsername();
+  }, [publicKey]);
+
   const renderOpenBorrowingItem = ({ item }: { item: BorrowingData }) => {
     const loanDurationDays = Math.round(item.loanDurationSeconds / 86400);
     const principalAmountSol = item.principalAmount / 10 ** 9; // convert to Sol
     const amountToRepaySol = item.amountToRepay / 10 ** 9; // convert to Sol
     const now = Date.now() / 1000; // get the current time in seconds
     const endTime = (item.acceptBlocktime || now) + item.loanDurationSeconds; // calculate the end time in seconds
-    const timeRemaining = endTime - now; // calculate the remaining time in seconds
 
     let apy = item.apy;
     let interestDueSol = (amountToRepaySol - principalAmountSol).toFixed(2); // calculate interest and round to 3 decimal places
@@ -178,18 +195,24 @@ export function BorrowingScreen() {
         <>
           <View style={tw`mb-4`}>
             <Text style={tw`text-lg  mt-2 mb-4 ml-2 font-bold text-gray-100`}>
-              Welcome Back, @pixeltom.
+              Welcome Back, @{username || publicKey.toString()}.
             </Text>
             <View style={tw`flex-row bg-[#0F0F0F] rounded-md py-2 px-4 mx-2`}>
               <View>
                 <Text style={tw`text-sm font-bold text-gray-300`}>
                   Total Interest
                 </Text>
-                <Text style={tw`text-2xl font-bold text-red-400 mt-1`}>
-                  - {totalInterestDue.toFixed(2)} SOL
-                </Text>
+                <View style={tw`flex-row`}>
+                  <Text style={tw`text-2xl font-bold text-red-400 mt-1`}>
+                    - {totalInterestDue.toFixed(2)}
+                  </Text>
+                  <Image
+                    source={require("/assets/sol-gradient.png")}
+                    style={tw`w-6 h-6 ml-1 mt-[10px]`}
+                  />
+                </View>
               </View>
-              <View style={tw`ml-10`}>
+              <View style={tw`ml-18`}>
                 <Text style={tw`text-sm font-bold text-gray-300`}>
                   Active Loans
                 </Text>
