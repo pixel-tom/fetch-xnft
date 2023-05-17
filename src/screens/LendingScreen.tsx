@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import tw from "twrnc";
 import { useState, useEffect } from "react";
@@ -20,6 +21,7 @@ export function LendingScreen() {
   const [username, setUsername] = useState("");
   const [openLendingData, setOpenLendingData] = useState<LendingData[]>([]);
   const [displayedItems, setDisplayedItems] = useState<LendingData[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const styles = StyleSheet.create({
     cardContainer: {
@@ -34,6 +36,7 @@ export function LendingScreen() {
       const data = await fetchLendingAccounts(publicKey.toString());
       setOpenLendingData(data);
       setDisplayedItems(data.slice(0, 10));
+      setLoading(false);
     };
     fetchData();
   }, []);
@@ -120,7 +123,7 @@ export function LendingScreen() {
             <View style={tw`bg-black bg-opacity-50 p-1 rounded`}>
               <Text style={tw`text-[10px] font-bold text-white`}>APY</Text>
               <Text style={tw`text-[11px] text-gray-300`}>
-                {apy ? apy.toFixed(0) + " %" : "PERP"}
+                {apy ? apy.toFixed(0) + " %" : "N/A"}
               </Text>
             </View>
           </View>
@@ -187,11 +190,15 @@ export function LendingScreen() {
 
   return (
     <Screen style={tw`bg-black`}>
-      {displayedItems.length > 0 ? (
+      {loading ? ( // Show loading spinner when loading is true
+        <View style={tw`flex items-center justify-center h-20`}>
+          <ActivityIndicator color="white" size="large" />
+        </View>
+      ) : displayedItems.length > 0 ? (
         <>
-          <View style={tw`mb-4`}>
+          <View style={tw`mb-6`}>
             <Text style={tw`text-lg  mt-2 mb-4 ml-2 font-bold text-gray-100`}>
-              Welcome Back, {publicKey.toString()}.
+              Welcome Back, @{username || publicKey.toString()}.
             </Text>
             <View style={tw`flex-row bg-[#0F0F0F] rounded-md py-2 px-4 mx-2`}>
               <View>

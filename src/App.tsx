@@ -45,8 +45,8 @@ function Header({ navigation, route }: StackHeaderProps) {
     >
       {/* Placeholder logo */}
       <Image
-        source={require("../assets/doge-logo.png")}
-        style={{ width: 50, height: 40 }}
+        source={require("../assets/fetch-app-logo.png")}
+        style={{ width: 75, height: 40 }}
       />
 
       {/* Spacer to move buttons to the right */}

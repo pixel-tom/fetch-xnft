@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { usePublicKey } from "react-xnft";
 import tw from "twrnc";
@@ -18,11 +19,9 @@ import axios from "axios";
 export function BorrowingScreen() {
   const publicKey = usePublicKey();
   const [username, setUsername] = useState("");
-  //const address = "CoHF24eHFgBEcmeLxkxCT88HoTkZj8vdkzfhXVoqdbWp";
-  const [openBorrowingData, setOpenBorrowingData] = useState<BorrowingData[]>(
-    []
-  );
+  const [openBorrowingData, setOpenBorrowingData] = useState<BorrowingData[]>([]);
   const [displayedItems, setDisplayedItems] = useState<BorrowingData[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const styles = StyleSheet.create({
     cardContainer: {
@@ -38,6 +37,7 @@ export function BorrowingScreen() {
       const data = await fetchBorrowingAccounts(publicKey.toString());
       setOpenBorrowingData(data);
       setDisplayedItems(data.slice(0, 10));
+      setLoading(false); // Set loading state to false after data is fetched
     };
     fetchBorrowingData();
   }, []);
@@ -124,7 +124,7 @@ export function BorrowingScreen() {
             <View style={tw`bg-black bg-opacity-50 p-1 rounded`}>
               <Text style={tw`text-[10px] font-bold text-white`}>APY</Text>
               <Text style={tw`text-[11px] text-gray-300`}>
-                {apy ? apy.toFixed(0) + " %" : "PERP"}
+                {apy ? apy.toFixed(0) + " %" : "N/A"}
               </Text>
             </View>
           </View>
@@ -191,10 +191,14 @@ export function BorrowingScreen() {
 
   return (
     <Screen style={tw`bg-black`}>
-      {displayedItems.length > 0 ? (
+      {loading ? ( // Show loading spinner when loading is true
+        <View style={tw`flex items-center justify-center h-20`}>
+          <ActivityIndicator color="white" size="large" />
+        </View>
+      ) : displayedItems.length > 0 ? (
         <>
-          <View style={tw`mb-4`}>
-            <Text style={tw`text-lg  mt-2 mb-4 ml-2 font-bold text-gray-100`}>
+          <View style={tw`mb-6`}>
+            <Text style={tw`text-lg  mt-2 mb-4 ml-3 font-bold text-gray-100`}>
               Welcome Back, @{username || publicKey.toString()}.
             </Text>
             <View style={tw`flex-row bg-[#0F0F0F] rounded-md py-2 px-4 mx-2`}>
@@ -241,7 +245,7 @@ export function BorrowingScreen() {
       ) : (
         <View style={tw`flex items-center justify-center h-20`}>
           <Text style={tw`text-gray-500 text-sm`}>
-            No open lending account data found.
+            No open borrowing account data found.
           </Text>
         </View>
       )}

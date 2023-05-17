@@ -1,17 +1,16 @@
 {
-  "name": "xNFT Quickstart",
+  "name": "Fetch.",
   "version": "0.0.1",
-  "storage": "",
-  "description": "React Native Example",
-  "website": "http://wao.gg",
+  "storage": "arweave",
+  "installAuthority": "CoHF24eHFgBEcmeLxkxCT88HoTkZj8vdkzfhXVoqdbWp",
+  "description": "Meet Fetch, your Lending Assistant.",
+  "longDescription": "Fetch is the personal lending assistant that takes the pain out of managing your NFT loans. With Fetch, you can track your loans from all of your different lenders in one place. You'll never have to worry about missing a payment or losing track of your loan terms again. Fetch is the perfect tool for NFT holders who want to stay organized and on top of their finances.",
+  "website": "https://thedogecapital.com",
   "kind": "app",
   "icon": {
-    "md": "./assets/icon.png"
+    "md": "./assets/fetch-app-icon.png"
   },
-  "contact": "",
-  "screenshots": [
-    "./assets/screenShot.png"
-  ],
+  "contact": "@pixeltom.",
   "entrypoints": {
     "default": {
       "web": "./web-build/index.html"
