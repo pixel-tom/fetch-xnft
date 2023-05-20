@@ -11,17 +11,21 @@ import { usePublicKey } from "react-xnft";
 import tw from "twrnc";
 import { useState, useEffect } from "react";
 import fetchBorrowingAccounts from "../utils/fetchBorrowingAccounts";
+import { fetchUserStats } from "../utils/fetchRainfiData";
 import { Screen } from "../components/Screen";
-import { BorrowingData } from "../types/types";
+import { BorrowingData, Loan } from "../types/types";
 import { Image } from "react-native";
 import axios from "axios";
 
 export function BorrowingScreen() {
   const publicKey = usePublicKey();
   const [username, setUsername] = useState("");
-  const [openBorrowingData, setOpenBorrowingData] = useState<BorrowingData[]>([]);
+  const [openBorrowingData, setOpenBorrowingData] = useState<BorrowingData[]>(
+    []
+  );
   const [displayedItems, setDisplayedItems] = useState<BorrowingData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<Loan | null>(null);
 
   const styles = StyleSheet.create({
     cardContainer: {
@@ -30,23 +34,6 @@ export function BorrowingScreen() {
       padding: 8,
     },
   });
-
-
-  useEffect(() => {
-    const fetchBorrowingData = async () => {
-      const data = await fetchBorrowingAccounts(publicKey.toString());
-      setOpenBorrowingData(data);
-      setDisplayedItems(data.slice(0, 10));
-      setLoading(false); // Set loading state to false after data is fetched
-    };
-    fetchBorrowingData();
-  }, []);
-
-  const showMoreItems = () => {
-    const currentLength = displayedItems.length;
-    const newItems = openBorrowingData.slice(currentLength, currentLength + 10);
-    setDisplayedItems([...displayedItems, ...newItems]);
-  };
 
   useEffect(() => {
     const fetchUsername = async () => {
@@ -63,7 +50,128 @@ export function BorrowingScreen() {
     fetchUsername();
   }, [publicKey]);
 
+  useEffect(() => {
+    const fetchBorrowingData = async () => {
+      const borrowingData = await fetchBorrowingAccounts(publicKey.toString());
+      const rainfiData = await fetchUserStats();
+      let allData;
+      if (rainfiData) {
+        // If rainfiData is not null
+        allData = [...borrowingData, rainfiData]; // Spread both arrays into a new array
+      } else {
+        allData = [...borrowingData]; // If rainfiData is null, just spread borrowingData
+      }
+      setOpenBorrowingData(allData);
+      setDisplayedItems(allData.slice(0, 10));
+      setLoading(false);
+    };
+    fetchBorrowingData();
+  }, []);
+
+  const showMoreItems = () => {
+    const currentLength = displayedItems.length;
+    const newItems = openBorrowingData.slice(currentLength, currentLength + 10);
+    setDisplayedItems([...displayedItems, ...newItems]);
+  };
+
   const renderOpenBorrowingItem = ({ item }: { item: BorrowingData }) => {
+    if (item.accountAddress) {
+      const loanDurationDays = Math.round(item.duration / 86400);
+      const loanDurationYears = loanDurationDays / 365; // convert days to years
+      const loanAmount = item.amount / 10 ** 9; // convert to Sol
+      const interestDue = item.interest / 10 ** 9;
+      const amountToRepaySol = (item.interest + item.amount) / 10 ** 9; // convert to Sol
+      const totalInterest = amountToRepaySol - loanAmount;
+      const interestRate = totalInterest / loanAmount / loanDurationYears;
+      const apy = Math.pow(1 + interestRate, loanDurationYears) - 1;
+
+      const loanEndTimestamp =
+        new Date(item.createdAt * 1000).getTime() + item.duration * 1000;
+      let remainingTimeSeconds = Math.max(
+        (loanEndTimestamp - Date.now()) / 1000,
+        0
+      );
+      const remainingTimeDays = Math.floor(remainingTimeSeconds / 86400);
+      remainingTimeSeconds %= 86400;
+      const remainingTimeHours = Math.floor(remainingTimeSeconds / 3600);
+      remainingTimeSeconds %= 3600;
+      const remainingTimeMinutes = Math.floor(remainingTimeSeconds / 60);
+
+      return (
+        <View>
+          <View
+            style={[
+              tw`mb-3 p-0 bg-[#0F0F0F] border border-[#222222] rounded-lg`,
+              styles.cardContainer,
+            ]}
+          >
+            <View style={tw`w-full relative`}>
+              <Image
+                source={{
+                  uri: `https://cdn.hellomoon.io/nft/${item.mint}?apiKey=151c15b0-d21d-40b2-9786-49678176b715&format=webp&width=500&height=500`,
+                }}
+                style={{ width: "100%", aspectRatio: 1, borderRadius: 4 }}
+              />
+              <View style={tw`absolute top-0 left-0 p-1`}>
+                <View style={tw`bg-black bg-opacity-50 p-1 rounded`}>
+                  <Text style={tw`text-[10px] font-bold text-white`}>Loan</Text>
+                  <View style={tw`flex-row items-center`}>
+                    <Text style={tw`text-[10px] font-bold text-white`}>
+                      {loanAmount.toFixed(2) + " "}
+                    </Text>
+                    <Image
+                      source={require("/assets/sol.png")}
+                      style={{ width: 9, height: 7 }}
+                    />
+                  </View>
+                </View>
+              </View>
+              <View style={tw`absolute bottom-0 right-0 p-1`}>
+                <View style={tw`bg-black bg-opacity-50 p-1 rounded`}>
+                  <Text style={tw`text-[10px] font-bold text-white`}>APY</Text>
+                  <Text style={tw`text-[11px] text-gray-300`}>
+                    {(apy * 10000).toFixed(2) + " %"}{" "}
+                    {/* Display APY in percentage */}
+                  </Text>
+                </View>
+              </View>
+              <View style={tw`absolute bottom-0 left-0 p-1`}>
+                <View style={tw`bg-black bg-opacity-50 p-1 rounded`}>
+                  <Text style={tw`text-[10px] font-bold text-white`}>Term</Text>
+                  <Text style={tw`text-[11px] text-gray-300`}>
+                    {loanDurationDays} Days
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={tw`px-2 pb-1 pt-2 w-full`}>
+              <Text style={tw`text-xs font-bold text-white`}>Interest Due</Text>
+              <Text style={tw`text-xs text-red-400`}>
+                - {interestDue.toFixed(2)} SOL
+              </Text>
+            </View>
+            <View style={tw`px-2 pt-1 pb-2 w-full`}>
+              <Text style={tw`text-xs font-bold text-white`}>
+                Time Remaining
+              </Text>
+              <Text style={tw`text-md font-bold text-gray-300`}>
+                {remainingTimeDays}D {remainingTimeHours}H{" "}
+                {remainingTimeMinutes}M
+              </Text>
+            </View>
+            <View style={tw`absolute top-0 right-0 p-1`}>
+              <Image
+                source={{
+                  uri: "https://i.ibb.co/fCpnvzQ/rain-simple-logo.png",
+                }}
+                style={{ width: 15, height: 22 }}
+              />
+            </View>
+          </View>
+        </View>
+      );
+    }
     const loanDurationDays = Math.round(item.loanDurationSeconds / 86400);
     const principalAmountSol = item.principalAmount / 10 ** 9; // convert to Sol
     const amountToRepaySol = item.amountToRepay / 10 ** 9; // convert to Sol
@@ -95,7 +203,7 @@ export function BorrowingScreen() {
     return (
       <View
         style={[
-          tw`mb-3 p-0 w-full bg-[#0F0F0F] border border-[#222222] rounded-lg`,
+          tw`mb-3 p-0 bg-[#0F0F0F] border border-[#222222] rounded-lg`,
           styles.cardContainer,
         ]}
       >
@@ -106,7 +214,7 @@ export function BorrowingScreen() {
             }}
             style={{ width: "100%", aspectRatio: 1, borderRadius: 4 }}
           />
-          <View style={tw`absolute top-0 left-0 p-2`}>
+          <View style={tw`absolute top-0 left-0 p-1`}>
             <View style={tw`bg-black bg-opacity-50 p-1 rounded`}>
               <Text style={tw`text-[10px] font-bold text-white`}>Loan</Text>
               <View style={tw`flex-row items-center`}>
@@ -120,7 +228,7 @@ export function BorrowingScreen() {
               </View>
             </View>
           </View>
-          <View style={tw`absolute bottom-0 right-0 p-2`}>
+          <View style={tw`absolute bottom-0 right-0 p-1`}>
             <View style={tw`bg-black bg-opacity-50 p-1 rounded`}>
               <Text style={tw`text-[10px] font-bold text-white`}>APY</Text>
               <Text style={tw`text-[11px] text-gray-300`}>
@@ -128,7 +236,7 @@ export function BorrowingScreen() {
               </Text>
             </View>
           </View>
-          <View style={tw`absolute bottom-0 left-0 p-2`}>
+          <View style={tw`absolute bottom-0 left-0 p-1`}>
             <View style={tw`bg-black bg-opacity-50 p-1 rounded`}>
               <Text style={tw`text-[10px] font-bold text-white`}>Term</Text>
               <Text style={tw`text-[11px] text-gray-300`}>
@@ -176,7 +284,12 @@ export function BorrowingScreen() {
           </View>
         ) : (
           <View style={tw`absolute top-0 right-0 p-1`}>
-            <Text style={tw`text-xs font-bold text-green-500`}>OPEN</Text>
+            <Image
+              source={{
+                uri: "https://i.ibb.co/fCpnvzQ/rain-simple-logo.png",
+              }}
+              style={{ width: 15, height: 22 }}
+            />
           </View>
         )}
       </View>
@@ -227,12 +340,17 @@ export function BorrowingScreen() {
             </View>
           </View>
 
-          <FlatList
-            data={displayedItems}
-            keyExtractor={(item) => item.transactionId}
-            numColumns={2} // specify the number of columns
-            renderItem={renderOpenBorrowingItem}
-          />
+          <View style={tw`flex flex-row flex-wrap justify-around`}>
+            <FlatList
+              data={displayedItems}
+              renderItem={renderOpenBorrowingItem}
+              keyExtractor={(item, index) => index.toString()}
+              onEndReached={showMoreItems}
+              onEndReachedThreshold={0.5}
+              numColumns={2}
+            />
+          </View>
+
           {displayedItems.length < openBorrowingData.length && (
             <TouchableOpacity
               onPress={showMoreItems}

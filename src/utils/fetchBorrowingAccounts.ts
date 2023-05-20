@@ -9,7 +9,7 @@ const fetchBorrowingAccounts = async (address: string) => {
       "content-type": "application/json",
       authorization: "Bearer 151c15b0-d21d-40b2-9786-49678176b715",
     },
-    data: { borrower: address, status: 'active', limit: 500  },
+    data: { borrower: address, status: ['open', 'active'], limit: 500  },
   };
 
   try {

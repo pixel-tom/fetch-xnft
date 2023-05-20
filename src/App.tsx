@@ -8,6 +8,8 @@ import { LendingScreen } from "./screens/LendingScreen";
 import { BorrowingScreen } from "./screens/BorrowingScreen";
 import { StackHeaderProps } from "@react-navigation/stack";
 import { Image } from "react-native";
+global.Buffer = global.Buffer || require('buffer').Buffer;
+
 
 const Stack = createStackNavigator();
 
@@ -51,7 +53,6 @@ function Header({ navigation, route }: StackHeaderProps) {
 
       {/* Spacer to move buttons to the right */}
       <View style={{ flex: 1 }} />
-
       <TouchableOpacity onPress={() => navigation.navigate("Lending")}>
         <Text
           style={route.name === "Lending" ? activeTabStyle : inactiveTabStyle}
@@ -87,7 +88,7 @@ function App() {
     <RecoilRoot>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="Lending"
+          initialRouteName="Rainfi"
           screenOptions={{
             header: (props) => <Header {...props} />,
             headerTitleAlign: "center",
