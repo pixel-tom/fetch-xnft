@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "react-native-xnft",
+    "name": "Lending Aggregator",
     "slug": "react-native-xnft",
     "entryPoint": "./src/App"
   }

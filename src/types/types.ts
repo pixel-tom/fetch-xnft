@@ -25,6 +25,7 @@ export type LendingData = {
 };
 
 export type BorrowingData = {
+  blockTime: any;
   id: string | null | undefined;
   createdAt: number;
   mint: string;
@@ -82,5 +83,4 @@ export interface Loan {
   nft?: any;
   collectionName?: string;
   liquidatedAt: number;
-
 }
