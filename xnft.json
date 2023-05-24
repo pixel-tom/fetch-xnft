@@ -1,8 +1,8 @@
 {
   "name": "Fetch.",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "storage": "aws",
-  "description": "Meet Fetch, your Lending Assistant.",
+  "description": "Meet Fetch, your NFT loan manager.",
   "longDescription": "Fetch is the personal lending assistant that takes the pain out of managing your NFT loans. With Fetch, you can track your loans from all of your different lenders in one place. You'll never have to worry about missing a payment or losing track of your loan terms again. Fetch is the perfect tool for NFT holders who want to stay organized and on top of their finances.",
   "website": "https://thedogecapital.com",
   "royaltiesPercentage": 5,

@@ -14,12 +14,12 @@ import fetchBorrowingAccounts from "../utils/fetchBorrowingAccounts";
 import { fetchUserStats } from "../utils/fetchRainfiData";
 import { Screen } from "../components/Screen";
 import { BorrowingData, Loan } from "../types/types";
-import { Image } from "react-native";
+import { Image, ScrollView } from "react-native";
 import axios from "axios";
 
 export function BorrowingScreen() {
   const publicKey = usePublicKey();
-  //const publicKey = "CoHF24eHFgBEcmeLxkxCT88HoTkZj8vdkzfhXVoqdbWp";
+  // const publicKey = "HLFM7GmwN4NXvK2SuhmLFiADHq8UdK6i4uNxgkRD5aT5";
   const [username, setUsername] = useState("");
   const [openBorrowingData, setOpenBorrowingData] = useState<BorrowingData[]>(
     []
@@ -53,11 +53,11 @@ export function BorrowingScreen() {
   useEffect(() => {
     const fetchBorrowingData = async () => {
       const borrowingData = await fetchBorrowingAccounts(publicKey.toString());
-      const rainfiData = await fetchUserStats();
+      const rainfiData = await fetchUserStats(publicKey.toString());
       let allData;
       if (rainfiData) {
         // If rainfiData is not null
-        allData = [...borrowingData, rainfiData]; // Spread both arrays into a new array
+        allData = [...borrowingData, ...rainfiData]; // Spread both arrays into a new array
       } else {
         allData = [...borrowingData]; // If rainfiData is null, just spread borrowingData
       }
@@ -231,7 +231,7 @@ export function BorrowingScreen() {
               />
             </View>
           ) : (
-            <View style={tw`absolute top-0 right-0 p-2`}>
+            <View style={tw`absolute top-0 right-0 p-1`}>
               <Image
                 source={{
                   uri: "https://i.ibb.co/fCpnvzQ/rain-simple-logo.png",
@@ -253,78 +253,79 @@ export function BorrowingScreen() {
       ? (item.interest + item.amount) / 10 ** 9
       : item.amountToRepay / 10 ** 9;
     const interestDueSol = item.accountAddress
-      ? (item.interest / 10 ** 9)
-      : (amountToRepaySol - principalAmountSol);
-  
+      ? item.interest / 10 ** 9
+      : amountToRepaySol - principalAmountSol;
+
     return total + interestDueSol;
   }, 0);
-  
 
   return (
     <Screen style={tw`bg-black`}>
-      {loading ? ( // Show loading spinner when loading is true
-        <View style={tw`flex items-center justify-center h-20`}>
-          <ActivityIndicator color="white" size="large" />
-        </View>
-      ) : displayedItems.length > 0 ? (
-        <>
-          <View style={tw`mb-6`}>
-            <Text style={tw`text-lg  mt-2 mb-4 ml-3 font-bold text-gray-100`}>
-              Welcome Back, @{username || publicKey.toString()}.
-            </Text>
-            <View style={tw`flex-row bg-[#0F0F0F] rounded-md py-2 px-4 mx-2`}>
-              <View>
-                <Text style={tw`text-sm font-bold text-gray-300`}>
-                  Total Interest
-                </Text>
-                <View style={tw`flex-row`}>
-                  <Text style={tw`text-2xl font-bold text-red-400 mt-1`}>
-                    - {totalInterestDue.toFixed(2)}
+      <ScrollView>
+        {loading ? ( // Show loading spinner when loading is true
+          <View style={tw`flex items-center justify-center h-20`}>
+            <ActivityIndicator color="white" size="large" />
+          </View>
+        ) : displayedItems.length > 0 ? (
+          <>
+            <View style={tw`mb-6`}>
+              <Text style={tw`text-lg  mt-2 mb-4 ml-3 font-bold text-gray-100`}>
+                Welcome Back, @{username || publicKey.toString()}.
+              </Text>
+              <View style={tw`flex-row bg-[#0F0F0F] rounded-md py-2 px-4 mx-2`}>
+                <View>
+                  <Text style={tw`text-sm font-bold text-gray-300`}>
+                    Total Interest
                   </Text>
-                  <Image
-                    source={require("/assets/sol-gradient.png")}
-                    style={tw`w-6 h-6 ml-1 mt-[10px]`}
-                  />
+                  <View style={tw`flex-row`}>
+                    <Text style={tw`text-2xl font-bold text-red-400 mt-1`}>
+                      - {totalInterestDue.toFixed(2)}
+                    </Text>
+                    <Image
+                      source={require("/assets/sol-gradient.png")}
+                      style={tw`w-6 h-6 ml-1 mt-[10px]`}
+                    />
+                  </View>
+                </View>
+                <View style={tw`ml-18`}>
+                  <Text style={tw`text-sm font-bold text-gray-300`}>
+                    Active Loans
+                  </Text>
+                  <Text style={tw`text-2xl font-bold text-white mt-1`}>
+                    {openBorrowingData.length}
+                  </Text>
                 </View>
               </View>
-              <View style={tw`ml-18`}>
-                <Text style={tw`text-sm font-bold text-gray-300`}>
-                  Active Loans
-                </Text>
-                <Text style={tw`text-2xl font-bold text-white mt-1`}>
-                  {openBorrowingData.length}
-                </Text>
-              </View>
             </View>
-          </View>
 
-          <View style={tw`flex flex-row flex-wrap justify-around`}>
-            <FlatList
-              data={displayedItems}
-              renderItem={renderOpenBorrowingItem}
-              keyExtractor={(item, index) => index.toString()}
-              onEndReached={showMoreItems}
-              onEndReachedThreshold={0.5}
-              numColumns={2}
-            />
-          </View>
+            <View style={tw`flex flex-row flex-wrap justify-around`}>
+              <FlatList
+                data={displayedItems}
+                renderItem={renderOpenBorrowingItem}
+                keyExtractor={(item, index) => index.toString()}
+                onEndReached={showMoreItems}
+                onEndReachedThreshold={0.5}
+                numColumns={2}
+              />
+            </View>
 
-          {displayedItems.length < openBorrowingData.length && (
-            <TouchableOpacity
-              onPress={showMoreItems}
-              style={tw`mt-4 mb-8 border border-gray-400 text-center bg-none px-6 py-2 rounded-full`}
-            >
-              <Text style={tw`text-white font-bold text-sm`}>Show more</Text>
-            </TouchableOpacity>
-          )}
-        </>
-      ) : (
-        <View style={tw`flex items-center justify-center h-20`}>
-          <Text style={tw`text-gray-500 text-sm`}>
-            No open borrowing account data found.
-          </Text>
-        </View>
-      )}
+            {displayedItems.length < openBorrowingData.length && (
+              <TouchableOpacity
+                onPress={showMoreItems}
+                style={tw`mt-4 mb-8 border border-gray-400 text-center bg-none px-6 py-2 rounded-full`}
+              >
+                <Text style={tw`text-white font-bold text-sm`}>Show more</Text>
+              </TouchableOpacity>
+            )}
+          </>
+        ) : (
+          <View style={tw`flex items-center justify-center h-20`}>
+            <Text style={tw`text-gray-500 text-sm`}>
+              No open borrowing account data found.
+            </Text>
+          </View>
+        )}
+      </ScrollView>
     </Screen>
   );
 }

@@ -1,12 +1,19 @@
 import { Sale } from "@rainfi/sdk/dist/types/types";
 
 export type LendingData = {
+  blockTime: any;
+  id: string | null | undefined;
+  createdAt: number;
+  mint: string;
+  duration: number;
+  interest: number;
+  amount: any;
   transactionId: string;
   market: string;
   offerBlocktime: number | null;
   cancelBlocktime: number | null;
   acceptBlocktime: number | null;
-  repayBlocktime: number;
+  repayBlocktime: number | null;
   extendBlocktime: number | null;
   liquidateBlocktime: number | null;
   loadId: string;
@@ -22,6 +29,7 @@ export type LendingData = {
   protocolCollectionId: string;
   amountToRepay: number;
   apy: number | null;
+  accountAddress?: string | null;
 };
 
 export type BorrowingData = {
