@@ -8,6 +8,7 @@ import { LendingScreen } from "./screens/LendingScreen";
 import { BorrowingScreen } from "./screens/BorrowingScreen";
 import { StackHeaderProps } from "@react-navigation/stack";
 import { Image } from "react-native";
+import "./styles/styles.css";
 global.Buffer = global.Buffer || require('buffer').Buffer;
 
 const MainStack = createStackNavigator();

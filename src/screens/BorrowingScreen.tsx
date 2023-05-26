@@ -6,6 +6,7 @@ import {
   Dimensions,
   TouchableOpacity,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import { usePublicKey } from "react-xnft";
 import tw from "twrnc";
@@ -87,6 +88,8 @@ export function BorrowingScreen() {
     const interestDueSol = item.accountAddress
       ? (item.interest / 10 ** 9).toFixed(2)
       : (amountToRepaySol - principalAmountSol).toFixed(2);
+
+    const totalRepay = amountToRepaySol.toFixed(2);
 
     let apy;
 
@@ -194,13 +197,25 @@ export function BorrowingScreen() {
             </View>
           </View>
 
-          <View style={tw`px-2 pb-1 pt-2 w-full`}>
-            <Text style={tw`text-xs font-bold text-white`}>Interest Due</Text>
-            <Text style={tw`text-xs text-red-400`}>- {interestDueSol} SOL</Text>
+          <View style={tw`px-2 pt-3 pb-1 w-full`}>
+            <Text style={tw`text-xs font-bold text-indigo-100`}>
+              Interest Due
+            </Text>
+            <Text style={tw`text-sm text-red-300`}>
+              - {interestDueSol} SOL
+            </Text>
           </View>
-          <View style={tw`px-2 pt-1 pb-2 w-full`}>
-            <Text style={tw`text-xs font-bold text-white`}>Time Remaining</Text>
-            <Text style={tw`text-md font-bold text-gray-300`}>
+          <View style={tw`px-2 py-1 w-full`}>
+            <Text style={tw`text-xs font-bold text-indigo-100`}>
+              Total Repay
+            </Text>
+            <Text style={tw`text-sm text-gray-100`}>{totalRepay} SOL</Text>
+          </View>
+          <View style={tw`px-2 pb-3 pt-1 w-full`}>
+            <Text style={tw`text-xs font-bold text-indigo-100`}>
+              Time Remaining
+            </Text>
+            <Text style={tw`text-sm font-bold text-gray-200`}>
               {remainingTimeDays}D {remainingTimeHours}H {remainingTimeMinutes}M
             </Text>
           </View>
@@ -259,9 +274,23 @@ export function BorrowingScreen() {
     return total + interestDueSol;
   }, 0);
 
+  const scrollIndicatorStyle = {
+    ...Platform.select({
+      ios: {
+        backgroundColor: "darkgray",
+        width: 5,
+        marginRight: 2,
+      },
+      android: {
+        backgroundColor: "darkgray",
+        width: 5,
+      },
+    }),
+  };
+
   return (
     <Screen style={tw`bg-black`}>
-      <ScrollView>
+      <ScrollView scrollIndicatorInsets={scrollIndicatorStyle}>
         {loading ? ( // Show loading spinner when loading is true
           <View style={tw`flex items-center justify-center h-20`}>
             <ActivityIndicator color="white" size="large" />

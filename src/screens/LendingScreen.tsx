@@ -6,20 +6,22 @@ import {
   Dimensions,
   TouchableOpacity,
   ActivityIndicator,
+  Platform,
+  TouchableWithoutFeedback,
 } from "react-native";
 import tw from "twrnc";
 import { useState, useEffect } from "react";
 import fetchLendingAccounts from "../utils/fetchLendingAccounts";
 import { fetchUserStats } from "../utils/fetchRainfiLendingData";
 import { Screen } from "../components/Screen";
-import { LendingData, Loan } from "../types/types";
+import { LendingData } from "../types/types";
 import { Image, ScrollView } from "react-native";
 import { usePublicKey } from "react-xnft";
 import axios from "axios";
 
 export function LendingScreen() {
   const publicKey = usePublicKey();
-  // const publicKey = "8GSHYw7MvmA1gMPmHnSozARbq893XAwFxaKfy8KAcbyP";
+  // const publicKey = "5u2Pw5kYjo9NLPHphKwcR3HH63jSV65jCWuChNjTMN9g";
   const [username, setUsername] = useState("");
   const [openLendingData, setOpenLendingData] = useState<LendingData[]>([]);
   const [displayedItems, setDisplayedItems] = useState<LendingData[]>([]);
@@ -39,6 +41,7 @@ export function LendingScreen() {
         const response = await axios.get(
           `https://xnft-api-server.xnfts.dev/v1/users/fromPubkey?blockchain=solana&publicKey=${publicKey.toString()}`
         );
+        console.log(response);
         setUsername(response.data.user.username);
       } catch (error) {
         console.error("Error fetching username:", error);
@@ -85,6 +88,8 @@ export function LendingScreen() {
     const interestDueSol = item.accountAddress
       ? (item.interest / 10 ** 9).toFixed(2)
       : (amountToRepaySol - principalAmountSol).toFixed(2);
+
+    const totalRepay = amountToRepaySol.toFixed(2);
 
     let apy;
 
@@ -192,13 +197,25 @@ export function LendingScreen() {
             </View>
           </View>
 
-          <View style={tw`px-2 pb-1 pt-2 w-full`}>
-            <Text style={tw`text-xs font-bold text-white`}>Interest Due</Text>
-            <Text style={tw`text-xs text-red-400`}>- {interestDueSol} SOL</Text>
+          <View style={tw`px-2 pt-3 pb-1 w-full`}>
+            <Text style={tw`text-xs font-bold text-indigo-100`}>
+              Interest Due
+            </Text>
+            <Text style={tw`text-sm text-green-300`}>
+              + {interestDueSol} SOL
+            </Text>
           </View>
-          <View style={tw`px-2 pt-1 pb-2 w-full`}>
-            <Text style={tw`text-xs font-bold text-white`}>Time Remaining</Text>
-            <Text style={tw`text-md font-bold text-gray-300`}>
+          <View style={tw`px-2 py-1 w-full`}>
+            <Text style={tw`text-xs font-bold text-indigo-100`}>
+              Total Repay
+            </Text>
+            <Text style={tw`text-sm text-gray-100`}>{totalRepay} SOL</Text>
+          </View>
+          <View style={tw`px-2 pb-3 pt-1 w-full`}>
+            <Text style={tw`text-xs font-bold text-indigo-100`}>
+              Time Remaining
+            </Text>
+            <Text style={tw`text-sm font-bold text-gray-200`}>
               {remainingTimeDays}D {remainingTimeHours}H {remainingTimeMinutes}M
             </Text>
           </View>
@@ -257,9 +274,23 @@ export function LendingScreen() {
     return total + interestDueSol;
   }, 0);
 
+  const scrollIndicatorStyle = {
+    ...Platform.select({
+      ios: {
+        backgroundColor: "darkgray",
+        width: 5,
+        marginRight: 2,
+      },
+      android: {
+        backgroundColor: "darkgray",
+        width: 5,
+      },
+    }),
+  };
+
   return (
     <Screen style={tw`bg-black`}>
-      <ScrollView>
+      <ScrollView scrollIndicatorInsets={scrollIndicatorStyle}>
         {loading ? ( // Show loading spinner when loading is true
           <View style={tw`flex items-center justify-center h-20`}>
             <ActivityIndicator color="white" size="large" />
