@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Platform,
-  TouchableWithoutFeedback,
 } from "react-native";
 import tw from "twrnc";
 import { useState, useEffect } from "react";
@@ -19,9 +18,15 @@ import { Image, ScrollView } from "react-native";
 import { usePublicKey } from "react-xnft";
 import axios from "axios";
 
+const globalStyles = {
+  customFont: {
+    fontFamily: "RedHatDisplay_400Regular",
+  },
+};
+
 export function LendingScreen() {
-  const publicKey = usePublicKey();
-  // const publicKey = "5u2Pw5kYjo9NLPHphKwcR3HH63jSV65jCWuChNjTMN9g";
+  // const publicKey = usePublicKey();
+  const publicKey = "5u2Pw5kYjo9NLPHphKwcR3HH63jSV65jCWuChNjTMN9g";
   const [username, setUsername] = useState("");
   const [openLendingData, setOpenLendingData] = useState<LendingData[]>([]);
   const [displayedItems, setDisplayedItems] = useState<LendingData[]>([]);
@@ -151,7 +156,7 @@ export function LendingScreen() {
     return (
       <View
         style={[
-          tw`mb-3 p-0 bg-[#0F0F0F] border border-[#222222] rounded-lg`,
+          tw`mb-4 p-0 bg-[#0F0F0F] border border-[#222222] rounded-lg`,
           styles.cardContainer,
         ]}
       >
@@ -167,57 +172,140 @@ export function LendingScreen() {
             />
             <View style={tw`absolute top-0 left-0 p-1`}>
               <View style={tw`bg-black bg-opacity-50 p-1 rounded`}>
-                <Text style={tw`text-[10px] font-bold text-white`}>Loan</Text>
+                <Text
+                  style={[
+                    tw`text-[9px] font-semibold text-white`,
+                    globalStyles.customFont,
+                  ]}
+                >
+                  Loan
+                </Text>
                 <View style={tw`flex-row items-center`}>
-                  <Text style={tw`text-[10px] font-bold text-white`}>
+                  <Text
+                    style={[
+                      tw`text-[11px] font-semibold text-white`,
+                      globalStyles.customFont,
+                    ]}
+                  >
                     {principalAmountSol.toFixed(2) + " "}
                   </Text>
-                  <Image
-                    source={require("/assets/sol.png")}
-                    style={{ width: 9, height: 7 }}
-                  />
+                  <View>
+                    <Image
+                      source={require("/assets/sol.png")}
+                      style={{ width: 9, height: 7 }}
+                    />
+                  </View>
                 </View>
               </View>
             </View>
             <View style={tw`absolute bottom-0 right-0 p-1`}>
               <View style={tw`bg-black bg-opacity-50 p-1 rounded`}>
-                <Text style={tw`text-[10px] font-bold text-white`}>APY</Text>
-                <Text style={tw`text-[11px] text-gray-300`}>
+                <Text
+                  style={[
+                    tw`text-[9px] font-semibold text-white`,
+                    globalStyles.customFont,
+                  ]}
+                >
+                  APY
+                </Text>
+                <Text
+                  style={[
+                    tw`text-[11px] text-gray-300`,
+                    globalStyles.customFont,
+                  ]}
+                >
                   {apy ? apy.toFixed(0) + " %" : "N/A"}
                 </Text>
               </View>
             </View>
             <View style={tw`absolute bottom-0 left-0 p-1`}>
               <View style={tw`bg-black bg-opacity-50 p-1 rounded`}>
-                <Text style={tw`text-[10px] font-bold text-white`}>Term</Text>
-                <Text style={tw`text-[11px] text-gray-300`}>
+                <Text
+                  style={[
+                    tw`text-[9px] font-semibold text-white`,
+                    globalStyles.customFont,
+                  ]}
+                >
+                  Term
+                </Text>
+                <Text
+                  style={[
+                    tw`text-[11px] text-gray-300`,
+                    globalStyles.customFont,
+                  ]}
+                >
                   {loanDurationDays} Days
                 </Text>
               </View>
             </View>
           </View>
 
-          <View style={tw`px-2 pt-3 pb-1 w-full`}>
-            <Text style={tw`text-xs font-bold text-indigo-100`}>
-              Interest Due
-            </Text>
-            <Text style={tw`text-sm text-green-300`}>
-              + {interestDueSol} SOL
-            </Text>
+          <View style={tw`w-full flex-row pt-2 pb-1 px-2 text-center`}>
+            <View style={tw`w-1/2 py-1 pb-1`}>
+              <View>
+                <Text
+                  style={[
+                    tw`text-[10px] text-gray-400`,
+                    globalStyles.customFont,
+                  ]}
+                >
+                  Interest Due
+                </Text>
+              </View>
+              <Text
+                style={[
+                  tw`text-sm font-semibold text-green-400`,
+                  globalStyles.customFont,
+                ]}
+              >
+                + {interestDueSol}
+                <Image
+                  source={require("/assets/sol-gradient.png")}
+                  style={tw`w-[14px] h-[10px] ml-1 mt-1`}
+                />
+              </Text>
+            </View>
+            <View style={tw`w-1/2 py-1 border-left border-gray-700`}>
+              <Text
+                style={[tw`text-[10px] text-gray-400`, globalStyles.customFont]}
+              >
+                Total Repay
+              </Text>
+              <Text
+                style={[
+                  tw`text-sm font-semibold text-gray-100`,
+                  globalStyles.customFont,
+                ]}
+              >
+                {totalRepay}
+                <Image
+                  source={require("/assets/sol-gradient.png")}
+                  style={tw`w-[14px] h-[10px] ml-1 mt-1`}
+                />
+              </Text>
+            </View>
           </View>
-          <View style={tw`px-2 py-1 w-full`}>
-            <Text style={tw`text-xs font-bold text-indigo-100`}>
-              Total Repay
-            </Text>
-            <Text style={tw`text-sm text-gray-100`}>{totalRepay} SOL</Text>
-          </View>
-          <View style={tw`px-2 pb-3 pt-1 w-full`}>
-            <Text style={tw`text-xs font-bold text-indigo-100`}>
-              Time Remaining
-            </Text>
-            <Text style={tw`text-sm font-bold text-gray-200`}>
-              {remainingTimeDays}D {remainingTimeHours}H {remainingTimeMinutes}M
-            </Text>
+
+          <View style={tw`bg-[#000000] bg-opacity-30 mx-2 mb-2 rounded-lg`}>
+            <View style={tw`px-2 py-1 w-full`}>
+              <Text
+                style={[
+                  tw`text-[10px] font-bold text-gray-400 text-center`,
+                  globalStyles.customFont,
+                ]}
+              >
+                Time Remaining
+              </Text>
+              <Text
+                style={[
+                  tw`text-[18px] font-semibold text-gray-200 text-center`,
+                  globalStyles.customFont,
+                ]}
+              >
+                {remainingTimeDays}D {remainingTimeHours}H{" "}
+                {remainingTimeMinutes}M
+              </Text>
+            </View>
           </View>
 
           {item.market === "Sharky" ? (
@@ -274,6 +362,14 @@ export function LendingScreen() {
     return total + interestDueSol;
   }, 0);
 
+  const totalLoanValue = openLendingData.reduce((total, item) => {
+    const principalAmountSol = item.accountAddress
+      ? item.amount / 10 ** 9
+      : item.principalAmount / 10 ** 9;
+
+    return total + principalAmountSol;
+  }, 0);
+
   const scrollIndicatorStyle = {
     ...Platform.select({
       ios: {
@@ -289,38 +385,89 @@ export function LendingScreen() {
   };
 
   return (
-    <Screen style={tw`bg-black`}>
+    <Screen style={tw`bg-[#020202]`}>
       <ScrollView scrollIndicatorInsets={scrollIndicatorStyle}>
-        {loading ? ( // Show loading spinner when loading is true
+        {loading ? (
           <View style={tw`flex items-center justify-center h-20`}>
             <ActivityIndicator color="white" size="large" />
           </View>
         ) : displayedItems.length > 0 ? (
           <>
-            <View style={tw`mb-6`}>
-              <Text style={tw`text-lg  mt-2 mb-4 ml-2 font-bold text-gray-100`}>
+            <View style={tw`mb-6 mx-2`}>
+              <Text
+                style={[
+                  tw`text-xl mt-2 mb-4 ml-2 font-semibold text-gray-100`,
+                  globalStyles.customFont,
+                ]}
+              >
                 Welcome Back, @{username || publicKey.toString()}.
               </Text>
-              <View style={tw`flex-row bg-[#0F0F0F] rounded-md py-2 px-4 mx-2`}>
-                <View>
-                  <Text style={tw`text-sm font-bold text-gray-300`}>
+              <View
+                style={tw`flex-row bg-[#0F0F0F] rounded-md py-2 px-2 text-center`}
+              >
+                <View style={tw`w-2/5 items-center`}>
+                  <Text
+                    style={[
+                      tw`text-xs font-semibold text-gray-300`,
+                      globalStyles.customFont,
+                    ]}
+                  >
+                    Total Loan Value
+                  </Text>
+                  <View style={tw`flex-row`}>
+                    <Text
+                      style={[
+                        tw`text-[26px] font-semibold text-white mt-1`,
+                        globalStyles.customFont,
+                      ]}
+                    >
+                      {totalLoanValue.toFixed(2)}
+                    </Text>
+                    <Image
+                      source={require("/assets/sol-gradient.png")}
+                      style={tw`w-6 h-6 ml-1 my-auto mb-[5px]`}
+                    />
+                  </View>
+                </View>
+                <View style={tw`w-2/5 items-center`}>
+                  <Text
+                    style={[
+                      tw`text-xs font-semibold text-gray-300`,
+                      globalStyles.customFont,
+                    ]}
+                  >
                     Total Interest
                   </Text>
                   <View style={tw`flex-row`}>
-                    <Text style={tw`text-2xl font-bold text-green-400 mt-1`}>
+                    <Text
+                      style={[
+                        tw`text-[26px] font-semibold text-green-400 mt-1`,
+                        globalStyles.customFont,
+                      ]}
+                    >
                       + {totalInterestDue.toFixed(2)}
                     </Text>
                     <Image
                       source={require("/assets/sol-gradient.png")}
-                      style={tw`w-6 h-6 ml-1 mt-[10px]`}
+                      style={tw`w-6 h-6 ml-1 my-auto mb-[5px]`}
                     />
                   </View>
                 </View>
-                <View style={tw`ml-18`}>
-                  <Text style={tw`text-sm font-bold text-gray-300`}>
-                    Active Loans
+                <View style={tw`w-1/5`}>
+                  <Text
+                    style={[
+                      tw`text-xs font-semibold text-gray-300`,
+                      globalStyles.customFont,
+                    ]}
+                  >
+                    Active
                   </Text>
-                  <Text style={tw`text-2xl font-bold text-white mt-1`}>
+                  <Text
+                    style={[
+                      tw`text-[26px] font-semibold text-white mt-1`,
+                      globalStyles.customFont,
+                    ]}
+                  >
                     {openLendingData.length}
                   </Text>
                 </View>
@@ -339,13 +486,20 @@ export function LendingScreen() {
                 onPress={showMoreItems}
                 style={tw`mt-4 mb-8 border border-slate-400 text-center bg-none px-6 py-2 rounded-full`}
               >
-                <Text style={tw`text-white font-bold text-sm`}>Show more</Text>
+                <Text
+                  style={[
+                    tw`text-white font-bold text-sm`,
+                    globalStyles.customFont,
+                  ]}
+                >
+                  Show more
+                </Text>
               </TouchableOpacity>
             )}
           </>
         ) : (
           <View style={tw`flex items-center justify-center h-20`}>
-            <Text style={tw`text-slate-500 text-sm`}>
+            <Text style={[tw`text-slate-500 text-sm`, globalStyles.customFont]}>
               No open lending account data found.
             </Text>
           </View>

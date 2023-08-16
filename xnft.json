@@ -1,6 +1,6 @@
 {
   "name": "Fetch.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "storage": "aws",
   "description": "Meet Fetch, your NFT loan manager.",
   "longDescription": "Fetch is the personal lending assistant that takes the pain out of managing your NFT loans. With Fetch, you can track your loans from all of your different lenders in one place. You'll never have to worry about missing a payment or losing track of your loan terms again. Fetch is the perfect tool for NFT holders who want to stay organized and on top of their finances.",
@@ -14,7 +14,7 @@
     "lg": "./assets/icon.png"
   },
   "screenshots": ["./assets/home-screenshot.png"],
-  "contact": "@pixeltom.",
+  "contact": "@pixeltom_",
   "entrypoints": {
     "default": {
       "web": "./web-build/index.html"

@@ -9,7 +9,7 @@ const fetchBorrowingAccounts = async (address: string) => {
       "content-type": "application/json",
       authorization: "Bearer 151c15b0-d21d-40b2-9786-49678176b715",
     },
-    data: { borrower: address, status: ['open', 'active'], limit: 500  },
+    data: { borrower: address, status: ['active'], limit: 500  },
   };
 
   try {
@@ -18,12 +18,9 @@ const fetchBorrowingAccounts = async (address: string) => {
     const openBorrowingData = data.filter(
       (item: { status: string }) => item.status === "active"
     );
-    const closedBorrowingData = data.filter(
-      (item: { status: string }) =>
-        item.status === "repaid" || item.status === "liquidated"
-    );
+
     return openBorrowingData;
-    return closedBorrowingData;
+
   } catch (error) {
     console.error(error);
     return [];

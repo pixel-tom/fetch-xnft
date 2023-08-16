@@ -2,14 +2,19 @@ import { registerRootComponent } from "expo";
 import { RecoilRoot } from "recoil";
 import { ActivityIndicator, View, TouchableOpacity, Text } from "react-native";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
-import { createStackNavigator, TransitionPresets } from "@react-navigation/stack";
-import { useFonts, PressStart2P_400Regular } from "@expo-google-fonts/dev";
+import {
+  createStackNavigator,
+  TransitionPresets,
+} from "@react-navigation/stack";
+import { useFonts, RedHatDisplay_400Regular } from "@expo-google-fonts/dev";
 import { LendingScreen } from "./screens/LendingScreen";
 import { BorrowingScreen } from "./screens/BorrowingScreen";
 import { StackHeaderProps } from "@react-navigation/stack";
 import { Image } from "react-native";
 import "./styles/styles.css";
-global.Buffer = global.Buffer || require('buffer').Buffer;
+import DropdownSlider from "./components/DropdownSlider";
+import tw from "twrnc";
+global.Buffer = global.Buffer || require("buffer").Buffer;
 
 const MainStack = createStackNavigator();
 const NestedStack = createStackNavigator();
@@ -18,7 +23,7 @@ const MyTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    background: '#000000',
+    background: "#000000",
   },
 };
 
@@ -49,31 +54,18 @@ function Header({ navigation, route }: StackHeaderProps) {
         backgroundColor: "#0F0F0F",
         paddingTop: 10,
         paddingBottom: 10,
-        paddingRight: 87,
         paddingHorizontal: 15,
         elevation: 4,
       }}
     >
+      <View style={tw`w-1/3`}>
+        <DropdownSlider navigation={navigation} />
+      </View>
       <Image
         source={require("../assets/fetch-app-logo.png")}
-        style={{ width: 75, height: 40 }}
+        style={[tw`mb-auto w-1/3 mt-2`, { width: 120, height: 30 }]}
       />
-
-      <View style={{ flex: 1 }} />
-      <TouchableOpacity onPress={() => navigation.navigate('Main', {screen: 'Lending'})}>
-        <Text
-          style={route.name === "Lending" ? activeTabStyle : inactiveTabStyle}
-        >
-          Lending
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('Main', {screen: 'Borrowing'})}>
-        <Text
-          style={route.name === "Borrowing" ? activeTabStyle : inactiveTabStyle}
-        >
-          Borrowing
-        </Text>
-      </TouchableOpacity>
+      <View style={tw`w-1/3`}/>
     </View>
   );
 }
@@ -85,7 +77,7 @@ const NestedNavigator = () => {
       screenOptions={{
         headerShown: false,
         ...TransitionPresets.SlideFromRightIOS,
-        cardStyle: { backgroundColor: '#000000' } 
+        cardStyle: { backgroundColor: "#000000" },
       }}
     >
       <NestedStack.Screen name="Lending" component={LendingScreen} />
@@ -96,7 +88,7 @@ const NestedNavigator = () => {
 
 function App() {
   let [fontsLoaded] = useFonts({
-    PressStart2P_400Regular,
+    RedHatDisplay_400Regular,
   });
 
   if (!fontsLoaded) {
